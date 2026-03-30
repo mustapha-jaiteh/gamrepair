@@ -16,7 +16,10 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $user = $this->user();
+        $role = $user->role ?? null;
+
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -24,8 +27,32 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                Rule::unique($user::class)->ignore($user->id),
             ],
         ];
+
+        if ($role === 'mechanic') {
+            $rules = array_merge($rules, [
+                'phone' => ['nullable', 'string', 'max:20'],
+                'city' => ['nullable', 'string', 'max:255'],
+                'mechanic_license' => ['required', 'string', 'max:50', Rule::unique(\App\Models\Mechanic::class)->ignore($user->id)],
+                'years_of_experience' => ['nullable', 'integer', 'min:0'],
+                'specialization' => ['nullable', 'string', 'max:255'],
+            ]);
+        } elseif ($role === 'admin') {
+            // Admin only has name and email for now
+        } else {
+            // Default to User
+            $rules = array_merge($rules, [
+                'phone' => ['nullable', 'string', 'max:20'],
+                'city' => ['nullable', 'string', 'max:255'],
+                'vehicle_name' => ['nullable', 'string', 'max:255'],
+                'license_plate' => ['nullable', 'string', 'max:50', Rule::unique(User::class)->ignore($user->id)],
+                'vehicle_model' => ['nullable', 'string', 'max:255'],
+                'vehicle_year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            ]);
+        }
+
+        return $rules;
     }
 }

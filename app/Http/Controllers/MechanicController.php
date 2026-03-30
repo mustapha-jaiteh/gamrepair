@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Mechanic;
 use App\Models\Service;
+use App\Events\BookingUpdated;
+use App\Events\ServiceUpdated;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Validator;
@@ -15,11 +18,40 @@ use Illuminate\Support\Facades\Storage;
 class MechanicController extends Controller
 {
     /**
+     * Display the mechanic dashboard.
+     */
+    public function index(): Response
+    {
+        $mechanic = Auth::guard('mechanic')->user();
+
+        $bookings = Booking::where('mechanic_id', $mechanic->id)->get();
+        // Fallback for old services matching license for backward compatibility during transition
+        $services = Service::where('mechanic_license', $mechanic->mechanic_license)->get();
+
+        // Performance stats
+        $sixMonthsAgo = now()->subMonths(6);
+        $jobOrder = $bookings->where('date', '>=', $sixMonthsAgo)->count();
+        $completedServices = $services->where('status', 'completed')->count();
+
+        // Latest service (simplified logic for now)
+        $currentService = $services->sortByDesc('request_date')->first();
+
+        return Inertia::render('Mechanic/Dashboard', [
+            'mechanic' => $mechanic,
+            'jobOrder' => $jobOrder,
+            'completedServices' => $completedServices,
+            'currentService' => $currentService,
+            'bookings' => $bookings->where('assigned', false)->values(),
+            'services' => $services
+        ]);
+    }
+
+    /**
      * Display the mechanic registration view.
      */
     public function create(): Response
     {
-        return Inertia::render('Mechanic/Register');
+        return Inertia::render('Mechanics/Register');
     }
 
     /**
@@ -65,14 +97,38 @@ class MechanicController extends Controller
     }
 
     /**
-     * Get assigned bookings for a mechanic.
+     * Get assigned booking requests for a mechanic.
      */
-    public function assignedBookings(string $license): Response
+    public function assignedBookings(Request $request): Response
     {
-        $bookings = Booking::where('mechanic_license', $license)->get();
+        $mechanic = Auth::guard('mechanic')->user();
+        $bookings = Booking::where('mechanic_id', $mechanic->id)
+            ->where('assigned', false)
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('vehicle_name', 'like', "%{$search}%")
+                        ->orWhere('license_plate', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%")
+                        ->orWhere('vehicle_owner', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Mechanic/AssignedBookings', [
-            'bookings' => $bookings
+            'bookings' => $bookings,
+            'filters' => $request->only(['search'])
+        ]);
+    }
+
+    /**
+     * Display a specific booking detail.
+     */
+    public function showBooking(int $id): Response
+    {
+        return Inertia::render('Mechanic/BookingDetails', [
+            'booking' => Booking::with('service')->findOrFail($id)
         ]);
     }
 
@@ -93,18 +149,23 @@ class MechanicController extends Controller
             'request_date' => 'required|date',
             'issue_description' => 'required|string',
             'status' => 'required|string',
-            'charges' => 'nullable|numeric',
-            'payment_status' => 'nullable|string',
-            'paid_date' => 'nullable|date',
-            'payment_receipt' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        if ($request->hasFile('payment_receipt')) {
-            $path = $request->file('payment_receipt')->store('receipts', 'public');
-            $validated['payment_receipt'] = $path;
+        $service = Service::updateOrCreate(
+            ['booking_id' => $validated['booking_id']],
+            $validated
+        );
+
+        // Also update the booking status if service is marked completed
+        if (isset($validated['status'])) {
+            $booking = Booking::where('id', $validated['booking_id'])->first();
+            if ($booking) {
+                $booking->update(['status' => $validated['status']]);
+                broadcast(new BookingUpdated($booking));
+            }
         }
 
-        Service::create($validated);
+        broadcast(new ServiceUpdated($service));
 
         return back()->with('success', 'Service updated successfully!');
     }
@@ -112,12 +173,98 @@ class MechanicController extends Controller
     /**
      * Display mechanic services.
      */
-    public function services(string $license): Response
+    public function services(Request $request): Response
     {
-        $services = Service::where('mechanic_license', $license)->get();
+        $mechanic = Auth::guard('mechanic')->user();
+        $services = Service::where('mechanic_license', $mechanic->mechanic_license)
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('vehicle_name', 'like', "%{$search}%")
+                        ->orWhere('license_plate', 'like', "%{$search}%")
+                        ->orWhere('vehicle_owner', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Mechanic/Services', [
-            'services' => $services
+            'services' => $services,
+            'filters' => $request->only(['search'])
         ]);
+    }
+
+    /**
+     * Display a specific service detail.
+     */
+    public function showService(int $id): Response
+    {
+        return Inertia::render('Mechanic/ServiceDetails', [
+            'service' => Service::findOrFail($id)
+        ]);
+    }
+
+    /**
+     * Accept a booking request.
+     */
+    public function acceptBooking(int $id): RedirectResponse
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->mechanic_id !== Auth::guard('mechanic')->id()) {
+            abort(403);
+        }
+
+        $mechanic = Auth::guard('mechanic')->user();
+        $booking->update([
+            'status' => 'accepted',
+            'assigned' => true,
+            'mechanic_name' => $mechanic->name,
+            'mechanic_license' => $mechanic->mechanic_license,
+        ]);
+
+        // Auto-create/update initial service record
+        $service = Service::updateOrCreate(
+            ['booking_id' => $booking->id],
+            [
+                'license_plate' => $booking->license_plate,
+                'vehicle_name' => $booking->vehicle_name,
+                'vehicle_owner' => $booking->vehicle_owner,
+                'mechanic_name' => Auth::guard('mechanic')->user()->name,
+                'mechanic_license' => Auth::guard('mechanic')->user()->mechanic_license,
+                'mechanic_phone' => Auth::guard('mechanic')->user()->phone,
+                'mechanic_location' => Auth::guard('mechanic')->user()->city,
+                'request_date' => $booking->date,
+                'issue_description' => $booking->issue_description,
+                'status' => 'accepted',
+            ]
+        );
+
+        broadcast(new BookingUpdated($booking));
+        broadcast(new ServiceUpdated($service));
+
+        return back()->with('success', 'Booking accepted successfully! A service record has been created.');
+    }
+
+    /**
+     * Reject a booking request.
+     */
+    public function rejectBooking(int $id): RedirectResponse
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->mechanic_id !== Auth::guard('mechanic')->id()) {
+            abort(403);
+        }
+
+        $booking->update([
+            'status' => 'rejected',
+            'assigned' => false
+        ]);
+
+        broadcast(new BookingUpdated($booking));
+
+        return back()->with('success', 'Booking request declined.');
     }
 }

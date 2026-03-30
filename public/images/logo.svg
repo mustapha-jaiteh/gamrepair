@@ -1,0 +1,23 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="100" height="100" rx="20" fill="#4F46E5"/>
+    
+    <!-- Car Silhouette (Based on car-1.jpg) -->
+    <path d="M20 75H80V65C80 58 75 55 70 55H25C20 55 15 58 15 65V75Z" fill="white"/>
+    
+    <!-- Open Hood -->
+    <path d="M25 55L5 30L40 55Z" fill="white" fill-opacity="0.9"/>
+    
+    <!-- Mechanic/Person Silhouette (Stylized) -->
+    <path d="M55 55V45C55 42 57 40 60 40S65 42 65 45V55L70 75H50L55 55Z" fill="white" fill-opacity="0.8"/>
+    
+    <!-- Windows -->
+    <path d="M35 60H65L60 65H40L35 60Z" fill="#4F46E5" fill-opacity="0.3"/>
+    
+    <!-- Wheels -->
+    <circle cx="30" cy="75" r="6" fill="#4F46E5" stroke="white" stroke-width="2"/>
+    <circle cx="70" cy="75" r="6" fill="#4F46E5" stroke="white" stroke-width="2"/>
+    
+    <!-- Ground Line -->
+    <path d="M10 82H90" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>

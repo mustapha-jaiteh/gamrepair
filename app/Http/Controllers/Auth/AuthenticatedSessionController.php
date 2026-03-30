@@ -29,11 +29,26 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $guard = $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($guard === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if ($guard === 'mechanic') {
+            /** @var \App\Models\Mechanic $mechanic */
+            $mechanic = Auth::guard('mechanic')->user();
+            $mechanic->is_online = true;
+            $mechanic->save();
+
+            broadcast(new \App\Events\MechanicStatusChanged($mechanic->id, true));
+
+            return redirect()->intended(route('mechanics.dashboard'));
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     /**
@@ -41,12 +56,25 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // If a mechanic is logging out, set them offline
+        if (Auth::guard('mechanic')->check()) {
+            /** @var \App\Models\Mechanic $mechanic */
+            $mechanic = Auth::guard('mechanic')->user();
+            $mechanic->is_online = false;
+            $mechanic->save();
+
+            broadcast(new \App\Events\MechanicStatusChanged($mechanic->id, false));
+        }
+
+        // Logout from all possible guards
         Auth::guard('web')->logout();
+        Auth::guard('admin')->logout();
+        Auth::guard('mechanic')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('welcome');
     }
 }

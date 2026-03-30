@@ -21,6 +21,9 @@ class Booking extends Model
         'mechanic_license',
         'mechanic_name',
         'assigned',
+        'user_id',
+        'mechanic_id',
+        'status',
     ];
 
     protected function casts(): array
@@ -29,5 +32,10 @@ class Booking extends Model
             'date' => 'date',
             'assigned' => 'boolean',
         ];
+    }
+
+    public function service()
+    {
+        return $this->hasOne(Service::class);
     }
 }

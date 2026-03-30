@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { 
     Users, 
     Wrench, 
@@ -12,6 +12,22 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard({ usersCount, mechanicsCount, bookingsCount, servicesCount }) {
+    useEffect(() => {
+        if (window.Echo) {
+            const channel = window.Echo.channel('admin-dashboard');
+            channel.listen('.BookingUpdated', () => {
+                router.reload();
+            });
+            channel.listen('.ServiceUpdated', () => {
+                router.reload();
+            });
+            return () => {
+                channel.stopListening('BookingUpdated');
+                channel.stopListening('ServiceUpdated');
+            };
+        }
+    }, []);
+
     const stats = [
         { name: 'Total Users', value: usersCount, icon: Users, color: 'blue', change: '+12%', trending: 'up' },
         { name: 'Mechanics', value: mechanicsCount, icon: Wrench, color: 'emerald', change: '+5%', trending: 'up' },
@@ -81,9 +97,9 @@ export default function Dashboard({ usersCount, mechanicsCount, bookingsCount, s
                         <div className="relative z-10">
                             <h3 className="text-xl font-bold text-white mb-2">Systems Operational</h3>
                             <p className="text-blue-100 mb-6 font-medium">All roadside assistance modules are currently active and scaling correctly.</p>
-                            <button className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold backdrop-blur-md transition-all">
+                            <Link href={route('admin.logs')} className="inline-block bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold backdrop-blur-md transition-all">
                                 View System Logs
-                            </button>
+                            </Link>
                         </div>
                         <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
                         <div className="absolute -top-12 -left-12 w-32 h-32 bg-blue-400 rounded-full blur-2xl opacity-50"></div>

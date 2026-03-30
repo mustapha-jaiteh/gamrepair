@@ -33,4 +33,14 @@ class Service extends Model
             'charges' => 'decimal:2',
         ];
     }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
+    }
+
+    public function feedback()
+    {
+        return $this->hasOne(Feedback::class);
+    }
 }

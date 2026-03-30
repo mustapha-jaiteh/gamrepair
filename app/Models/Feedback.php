@@ -16,4 +16,9 @@ class Feedback extends Model
         'license_plate',
         'message'
     ];
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
 }
