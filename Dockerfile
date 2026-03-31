@@ -1,8 +1,16 @@
 # Stage 1: Build Assets
 FROM node:20-alpine AS build
+ENV NODE_ENV=production
+
+# These must be set HERE so they are compiled into the JS
+ARG VITE_REVERB_APP_KEY
+ARG VITE_REVERB_HOST
+ARG VITE_REVERB_PORT
+ARG VITE_REVERB_SCHEME
+
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --include=dev
 COPY . .
 RUN npm run build
 
