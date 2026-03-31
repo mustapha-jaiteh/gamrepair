@@ -27,7 +27,7 @@ RUN apk add --no-cache \
 
 # Install PHP Extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring gd zip opcache intl pcntl
+    && docker-php-ext-install pdo pdo_pgsql pgsql mbstring gd zip opcache intl pcntl
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -41,8 +41,14 @@ COPY --from=build /app/public/build ./public/build
 # Install PHP Dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    postgresql-client
+
 # Setup Directory Permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 RUN php artisan storage:link
 
 # Copy Docker Config Files
