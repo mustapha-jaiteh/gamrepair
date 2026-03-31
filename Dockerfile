@@ -49,7 +49,11 @@ RUN php artisan storage:link
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 
+# Copy Entrypoint Script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Environment Setup
 EXPOSE 80 8080
 
-CMD ["sh", "-c", "sed -i 's/${PORT}/'\"$PORT\"'/g' /etc/nginx/http.d/default.conf && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

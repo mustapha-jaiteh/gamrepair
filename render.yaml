@@ -4,15 +4,14 @@ services:
     env: docker
     plan: free
     region: oregon
-    buildCommand: php artisan migrate --force 
+    buildCommand: php artisan migrate --force
     envVars:
       - key: APP_SERVICE_TYPE
         value: web
-      - fromDatabase:
+      - key: DATABASE_URL
+        fromDatabase:
           name: orvba-db
           property: connectionString
-        key: DATABASE_URL
-    envVars:
       - key: APP_KEY
         generateValue: true
       - key: APP_ENV
@@ -21,10 +20,6 @@ services:
         value: false
       - key: DB_CONNECTION
         value: pgsql
-      - key: DB_URL
-        fromDatabase:
-          name: orvba-db
-          property: connectionString
       - key: REVERB_HOST
         sync: false
       - key: REVERB_APP_ID
