@@ -4,6 +4,14 @@ services:
     env: docker
     plan: free
     region: oregon
+    buildCommand: php artisan migrate --force 
+    envVars:
+      - key: APP_SERVICE_TYPE
+        value: web
+      - fromDatabase:
+          name: orvba-db
+          property: connectionString
+        key: DATABASE_URL
     envVars:
       - key: APP_KEY
         generateValue: true
