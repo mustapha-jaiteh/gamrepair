@@ -10,7 +10,7 @@ RUN npm run build
 # Stage 2: Runtime
 FROM php:8.3-fpm-alpine
 
-# Install System Dependencies
+# Install System Dependencies (Optimized for Render)
 RUN apk add --no-cache \
     nginx \
     supervisor \
