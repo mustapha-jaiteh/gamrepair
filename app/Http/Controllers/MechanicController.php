@@ -93,7 +93,7 @@ class MechanicController extends Controller
             'password' => bcrypt($request->password),
         ]);
 
-        return redirect()->route('login')->with('success', 'Mechanic registered successfully!');
+        return redirect()->route('welcome')->with('success', 'Mechanic registered successfully! Please login.');
     }
 
     /**

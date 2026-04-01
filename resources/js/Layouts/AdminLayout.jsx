@@ -111,7 +111,7 @@ export default function AdminLayout({ children }) {
                         </button>
                         <div>
                             <h2 className="text-slate-500 text-[10px] md:text-sm font-medium uppercase tracking-widest md:normal-case md:tracking-normal">Welcome back,</h2>
-                            <p className="text-slate-900 font-bold text-sm md:text-base">{auth.user.name}</p>
+                            <p className="text-slate-900 font-bold text-sm md:text-base">{auth?.user?.name}</p>
                         </div>
                     </div>
                     
@@ -120,7 +120,7 @@ export default function AdminLayout({ children }) {
                              <div className="w-2 h-2 bg-blue-500 rounded-full absolute top-2 right-2 border-2 border-white"></div>
                         </div>
                         <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold ring-4 ring-blue-50 text-xs md:text-base">
-                            {auth.user.name.charAt(0)}
+                            {auth?.user?.name?.charAt(0)}
                         </div>
                     </div>
                 </header>

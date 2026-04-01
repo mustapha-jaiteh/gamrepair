@@ -1,14 +1,18 @@
 #!/bin/sh
 
-# Replace the port in the Nginx config
-if [ -n "$PORT" ]; then
-    sed -i "s/\${PORT}/$PORT/g" /etc/nginx/http.d/default.conf
-fi
+# Exit immediately if a command fails
+set -e
 
-# Run migrations
-echo "Running migrations..."
+echo "Starting Deployment Script..."
+
+# Run Migrations
 php artisan migrate --force
 
-# Start Supervisor
+# Clear and Cache Config
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Start Supervisor (the main process)
 echo "Starting Supervisor..."
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

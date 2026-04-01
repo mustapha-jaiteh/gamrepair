@@ -107,7 +107,7 @@ export default function MechanicLayout({ children }) {
                         </button>
                         <div>
                             <h2 className="text-slate-500 text-[10px] md:text-sm font-medium uppercase tracking-widest md:normal-case md:tracking-normal">Hello,</h2>
-                            <p className="text-slate-900 font-bold text-sm md:text-base">{auth.user.name}</p>
+                            <p className="text-slate-900 font-bold text-sm md:text-base">{auth?.user?.name}</p>
                         </div>
                     </div>
                     
@@ -116,7 +116,7 @@ export default function MechanicLayout({ children }) {
                              <span className="text-[8px] md:text-[10px] font-bold text-emerald-600 uppercase tracking-tighter bg-emerald-50 px-2 py-0.5 rounded">Active Status</span>
                         </div>
                         <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold ring-4 ring-orange-50 text-xs md:text-base">
-                            {auth.user.name.charAt(0)}
+                            {auth?.user?.name?.charAt(0)}
                         </div>
                     </div>
                 </header>
