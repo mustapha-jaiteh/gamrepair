@@ -35,7 +35,7 @@ export default function Register() {
                 setShowSuccess(true);
                 reset();
                 setTimeout(() => {
-                    router.visit(route("dashboard"));
+                    router.visit(route("welcome"));
                 }, 3000);
             },
             onError: () => reset("password", "password_confirmation"),

@@ -4,10 +4,12 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Wrench, Shield, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Register() {
+    const [showSuccess, setShowSuccess] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -29,6 +31,13 @@ export default function Register() {
         e.preventDefault();
 
         post(route('mechanics.register'), {
+            onSuccess: () => {
+                setShowSuccess(true);
+                reset();
+                setTimeout(() => {
+                    router.visit(route("welcome"));
+                }, 3000);
+            },
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };
@@ -44,6 +53,12 @@ export default function Register() {
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">Mechanic Partner</h2>
                 <p className="text-slate-500 font-medium mt-2 tracking-wide">Join our network of certified roadside experts.</p>
             </div>
+
+            {showSuccess && (
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-100 px-6 py-4 bg-emerald-500 text-white rounded-2xl font-black text-sm shadow-2xl shadow-emerald-500/20 animate-in fade-in slide-in-from-top-10 duration-500">
+                    Mechanic Registration successful! Redirecting...
+                </div>
+            )}
 
             <form onSubmit={submit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

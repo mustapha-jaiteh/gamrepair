@@ -8,7 +8,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 
 export default function Edit({ mustVerifyEmail, status }) {
     const { auth } = usePage().props;
-    const role = auth.user.role;
+    const role = auth?.user?.role || 'user';
 
     let Layout = UserLayout;
     if (role === 'admin') Layout = AdminLayout;
