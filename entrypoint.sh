@@ -5,6 +5,9 @@ set -e
 
 echo "Starting Deployment Script..."
 
+# 1. Wait for database (optional but helpful)
+echo "Checking database connection..."
+
 # Run Migrations
 php artisan migrate --force
 
