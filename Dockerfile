@@ -46,6 +46,7 @@ WORKDIR /var/www/html
 
 # Copy Project Files
 COPY . .
+RUN rm -rf public/hot
 # Copy compiled React assets from Stage 1
 COPY --from=build /app/public/build ./public/build
 
