@@ -22,15 +22,15 @@ class DatabaseSeeder extends Seeder
         );
 
         // 10 Users
-        \App\Models\User::factory(10)->create();
+        // \App\Models\User::factory(10)->create();
 
         // 10 Mechanics
-        \App\Models\Mechanic::factory(10)->create();
+        // \App\Models\Mechanic::factory(10)->create();
 
-        // 20 Bookings
-        \App\Models\Booking::factory(20)->create();
+        // 10 Bookings
+        // \App\Models\Booking::factory(10)->create();
 
-        // 20 Services
-        \App\Models\Service::factory(20)->create();
+        // 10 Services
+        // \App\Models\Service::factory(10)->create();
     }
 }

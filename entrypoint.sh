@@ -11,6 +11,9 @@ echo "Checking database connection..."
 # Run Migrations
 php artisan migrate --force
 
+# Run Seeders
+php artisan db:seed --class=DatabaseSeeder --force
+
 # Clear and Cache Config
 php artisan config:cache
 php artisan route:cache
