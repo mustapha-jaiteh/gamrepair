@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import { 
     Shield, 
     Wrench, 
@@ -21,8 +21,18 @@ import {
 } from 'lucide-react';
 
 export default function Welcome({ auth, laravelVersion, phpVersion, verifiedMechanicsCount }) {
+    const { flash } = usePage().props;
     const [activeSection, setActiveSection] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showFlash, setShowFlash] = useState(false);
+
+    useEffect(() => {
+        if (flash?.success) {
+            setShowFlash(true);
+            const timer = setTimeout(() => setShowFlash(false), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [flash?.success]);
 
     useEffect(() => {
         // ... intersection observer logic (no change needed to the effect itself)
@@ -80,6 +90,17 @@ export default function Welcome({ auth, laravelVersion, phpVersion, verifiedMech
     return (
         <div className="bg-[#FDFCFB] min-h-screen selection:bg-indigo-100 selection:text-indigo-900">
             <Head title="ORVBA - Premium Roadside Assistance" />
+
+            {/* Flash Messages */}
+            {showFlash && flash?.success && (
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] bg-emerald-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in fade-in zoom-in duration-500">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-bold text-sm tracking-wide">{flash.success}</span>
+                    <button onClick={() => setShowFlash(false)} className="ml-2 text-emerald-100 hover:text-white transition-colors">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
 
             {/* Navbar */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4">
