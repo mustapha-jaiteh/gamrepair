@@ -10,23 +10,23 @@ export default function UpdateProfileInformation({
     status,
     className = '',
 }) {
-    const user = usePage().props.auth.user;
+    const user = usePage().props.auth?.user || {};
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
-            name: user.name,
-            email: user.email,
-            phone: user.phone || '',
-            city: user.city || '',
+            name: user?.name || '',
+            email: user?.email || '',
+            phone: user?.phone || '',
+            city: user?.city || '',
             // User specific
-            vehicle_name: user.vehicle_name || '',
-            vehicle_model: user.vehicle_model || '',
-            vehicle_year: user.vehicle_year || '',
-            license_plate: user.license_plate || '',
+            vehicle_name: user?.vehicle_name || '',
+            vehicle_model: user?.vehicle_model || '',
+            vehicle_year: user?.vehicle_year || '',
+            license_plate: user?.license_plate || '',
             // Mechanic specific
-            mechanic_license: user.mechanic_license || '',
-            years_of_experience: user.years_of_experience || '',
-            specialization: user.specialization || '',
+            mechanic_license: user?.mechanic_license || '',
+            years_of_experience: user?.years_of_experience || '',
+            specialization: user?.specialization || '',
         });
 
     const submit = (e) => {
@@ -35,9 +35,9 @@ export default function UpdateProfileInformation({
         patch(route('profile.update'));
     };
 
-    const isUser = user.role !== 'admin' && user.role !== 'mechanic';
-    const isMechanic = user.role === 'mechanic';
-    const isAdmin = user.role === 'admin';
+    const isUser = user?.role !== 'admin' && user?.role !== 'mechanic';
+    const isMechanic = user?.role === 'mechanic';
+    const isAdmin = user?.role === 'admin';
 
     return (
         <section className={className}>
@@ -204,7 +204,7 @@ export default function UpdateProfileInformation({
                     </div>
                 )}
 
-                {mustVerifyEmail && user.email_verified_at === null && (
+                {mustVerifyEmail && user?.email_verified_at === null && (
                     <div>
                         <p className="mt-2 text-sm text-gray-800">
                             Your email address is unverified.
